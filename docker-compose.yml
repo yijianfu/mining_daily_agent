@@ -1,0 +1,84 @@
+version: "3.9"
+
+services:
+  mining-news-mcp:
+    build:
+      context: .
+      dockerfile: servers/mining_news_mcp/Dockerfile
+    ports:
+      - "8001:8000"
+    environment:
+      - MCP_TRANSPORT=sse
+      - MCP_HOST=0.0.0.0
+      - MCP_PORT=8000
+      - NEWSAPI_KEY=${NEWSAPI_KEY:-}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  mineral-pdf-mcp:
+    build:
+      context: .
+      dockerfile: servers/mineral_pdf_mcp/Dockerfile
+    ports:
+      - "8002:8000"
+    environment:
+      - MCP_TRANSPORT=sse
+      - MCP_HOST=0.0.0.0
+      - MCP_PORT=8000
+      - PDF_MAX_SIZE_MB=50
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  lme-price-mcp:
+    build:
+      context: .
+      dockerfile: servers/lme_price_mcp/Dockerfile
+    ports:
+      - "8003:8000"
+    environment:
+      - MCP_TRANSPORT=sse
+      - MCP_HOST=0.0.0.0
+      - MCP_PORT=8000
+      - LME_PRICE_PROVIDER=${LME_PRICE_PROVIDER:-mock}
+      - ITICK_API_KEY=${ITICK_API_KEY:-}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  agent:
+    build:
+      context: .
+      dockerfile: agent/Dockerfile
+    depends_on:
+      mining-news-mcp:
+        condition: service_healthy
+      mineral-pdf-mcp:
+        condition: service_healthy
+      lme-price-mcp:
+        condition: service_healthy
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - MCP_CLIENT_TRANSPORT=sse
+      - MCP_NEWS_URL=http://mining-news-mcp:8000/sse
+      - MCP_PDF_URL=http://mineral-pdf-mcp:8000/sse
+      - MCP_LME_URL=http://lme-price-mcp:8000/sse
+      - MODEL_PROVIDER=${MODEL_PROVIDER:-anthropic}
+      - MODEL_NAME=${MODEL_NAME:-claude-sonnet-4-20250514}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    stdin_open: true
+    tty: true

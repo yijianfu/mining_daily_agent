@@ -1,0 +1,28 @@
+{
+  "mcpServers": {
+    "mining-news": {
+      "command": "python",
+      "args": ["-m", "servers.mining_news_mcp.server"],
+      "env": {
+        "NEWSAPI_KEY": "${env:NEWSAPI_KEY}",
+        "LOG_LEVEL": "INFO"
+      }
+    },
+    "mineral-pdf": {
+      "command": "python",
+      "args": ["-m", "servers.mineral_pdf_mcp.server"],
+      "env": {
+        "LOG_LEVEL": "INFO"
+      }
+    },
+    "lme-price": {
+      "command": "python",
+      "args": ["-m", "servers.lme_price_mcp.server"],
+      "env": {
+        "LME_PRICE_PROVIDER": "mock",
+        "ITICK_API_KEY": "${env:ITICK_API_KEY}",
+        "LOG_LEVEL": "INFO"
+      }
+    }
+  }
+}
