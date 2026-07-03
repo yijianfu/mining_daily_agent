@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mining Daily Agent - 矿权日报</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+:root {
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --surface2: #222634;
+  --border: #2a2e3a;
+  --text: #e1e4ed;
+  --text2: #9498a4;
+  --accent: #f0a040;
+  --accent2: #d48830;
+  --user-bg: #1e3a5f;
+  --agent-bg: #1a2a1f;
+  --danger: #e05555;
+  --success: #4caf84;
+  --radius: 12px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Header ──────────────────────────────── */
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.header .logo {
+  font-size: 22px;
+  line-height: 1;
+}
+.header h1 {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+.header .badge {
+  font-size: 11px;
+  background: var(--accent);
+  color: #000;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-weight: 600;
+  margin-left: auto;
+}
+.header .status {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ── Chat Area ───────────────────────────── */
+.chat-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.chat-area::-webkit-scrollbar {
+  width: 6px;
+}
+.chat-area::-webkit-scrollbar-track {
+  background: transparent;
+}
+.chat-area::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+/* ── Message Bubbles ─────────────────────── */
+.message {
+  display: flex;
+  gap: 12px;
+  max-width: 85%;
+  animation: slideIn 0.3s ease;
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.message.user {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+.message.agent {
+  align-self: flex-start;
+}
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.message.user .avatar {
+  background: var(--user-bg);
+}
+.message.agent .avatar {
+  background: var(--agent-bg);
+}
+.bubble {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  line-height: 1.6;
+  font-size: 14px;
+  overflow-x: auto;
+}
+.message.user .bubble {
+  background: var(--user-bg);
+  border-color: #2a4a7a;
+}
+.message.agent .bubble {
+  background: var(--agent-bg);
+  border-color: #2a3a2a;
+  max-width: 100%;
+}
+
+/* ── Markdown inside bubbles ─────────────── */
+.bubble h1 { font-size: 1.5em; margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.bubble h2 { font-size: 1.2em; margin: 20px 0 10px; color: var(--accent); }
+.bubble h3 { font-size: 1.05em; margin: 16px 0 8px; }
+.bubble p  { margin: 8px 0; }
+.bubble ul, .bubble ol { margin: 8px 0; padding-left: 20px; }
+.bubble li { margin: 4px 0; }
+.bubble table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+  font-size: 13px;
+}
+.bubble th, .bubble td {
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  text-align: left;
+}
+.bubble th {
+  background: var(--surface2);
+  font-weight: 600;
+  color: var(--accent);
+}
+.bubble tr:nth-child(even) td {
+  background: rgba(255,255,255,0.02);
+}
+.bubble code {
+  background: var(--surface2);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+.bubble pre {
+  background: var(--surface2);
+  padding: 12px;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 10px 0;
+}
+.bubble blockquote {
+  border-left: 3px solid var(--accent);
+  padding-left: 12px;
+  color: var(--text2);
+  margin: 10px 0;
+}
+.bubble a {
+  color: var(--accent);
+}
+.bubble hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 16px 0;
+}
+.bubble strong { color: #fff; }
+
+/* ── Action Bar (download etc.) ──────────── */
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+.action-btn:hover {
+  background: var(--accent);
+  color: #000;
+  border-color: var(--accent);
+}
+
+/* ── Loading Dots ────────────────────────── */
+.loading {
+  display: flex;
+  gap: 4px;
+  padding: 8px 0;
+}
+.loading span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text2);
+  animation: bounce 1.4s infinite ease-in-out both;
+}
+.loading span:nth-child(1) { animation-delay: -.32s; }
+.loading span:nth-child(2) { animation-delay: -.16s; }
+@keyframes bounce {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1); }
+}
+
+/* ── Input Bar ───────────────────────────── */
+.input-bar {
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 14px 20px;
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.input-bar input {
+  flex: 1;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 12px 20px;
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.input-bar input:focus {
+  border-color: var(--accent);
+}
+.input-bar input::placeholder {
+  color: var(--text2);
+}
+.input-bar button {
+  background: var(--accent);
+  color: #000;
+  border: none;
+  border-radius: 24px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+.input-bar button:hover {
+  background: var(--accent2);
+}
+.input-bar button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Welcome State ───────────────────────── */
+.welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 60px 20px;
+  flex: 1;
+  gap: 16px;
+}
+.welcome .icon {
+  font-size: 56px;
+  margin-bottom: 8px;
+}
+.welcome h2 {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+}
+.welcome p {
+  color: var(--text2);
+  max-width: 420px;
+  line-height: 1.6;
+}
+.welcome .quick-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 8px;
+}
+.quick-btn {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+.quick-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ── Toast ───────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--success);
+  color: #000;
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  z-index: 100;
+  animation: fadeInOut 2s ease forwards;
+}
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateX(-50%) translateY(10px); }
+  15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  85% { opacity: 1; }
+  100% { opacity: 0; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="logo">⛏️</span>
+  <h1>Mining Daily Agent</h1>
+  <span class="status" title="Connected"></span>
+  <span class="badge">v1.0</span>
+</div>
+
+<div class="chat-area" id="chatArea">
+  <div class="welcome" id="welcome">
+    <div class="icon">⛏️</div>
+    <h2>Mining Daily Agent</h2>
+    <p>输入任意矿业相关问题，AI 将搜索新闻、提取 NI 43-101 储量数据、追踪金属价格，生成专业日报。</p>
+    <div class="quick-btns">
+      <button class="quick-btn" onclick="sendQuick(this.textContent)">Pilbara 锂矿今日简报</button>
+      <button class="quick-btn" onclick="sendQuick(this.textContent)">Gold market analysis</button>
+      <button class="quick-btn" onclick="sendQuick(this.textContent)">铜矿价格走势与新闻</button>
+      <button class="quick-btn" onclick="sendQuick(this.textContent)">铁矿石供应链分析</button>
+    </div>
+  </div>
+</div>
+
+<div class="input-bar">
+  <input id="queryInput"
+         placeholder="输入矿业查询... (例: Pilbara 锂矿今日简报)"
+         autofocus
+         onkeydown="if(event.key==='Enter') send()">
+  <button id="sendBtn" onclick="send()">发送</button>
+</div>
+
+<script>
+// ── Init ───────────────────────────────────
+marked.setOptions({ breaks: true, gfm: true });
+const chatArea = document.getElementById('chatArea');
+const queryInput = document.getElementById('queryInput');
+const sendBtn = document.getElementById('sendBtn');
+const welcome = document.getElementById('welcome');
+let conversation = [];
+
+// ── Send ───────────────────────────────────
+async function send() {
+  const query = queryInput.value.trim();
+  if (!query) return;
+  queryInput.value = '';
+  addMessage(query, 'user');
+  welcome.style.display = 'none';
+  const loadingMsg = showLoading();
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query })
+    });
+    if (!res.ok) throw new Error((await res.json()).detail || 'Unknown error');
+    const data = await res.json();
+    removeLoading(loadingMsg);
+    addReport(data.report, data.timestamp);
+  } catch(e) {
+    removeLoading(loadingMsg);
+    addMessage('Error: ' + e.message, 'agent');
+  }
+}
+
+function sendQuick(text) {
+  queryInput.value = text;
+  send();
+}
+
+// ── Messages ───────────────────────────────
+function addMessage(text, role) {
+  const div = document.createElement('div');
+  div.className = `message ${role}`;
+  const avatar = role === 'user' ? '👤' : '⛏️';
+  div.innerHTML = `<div class="avatar">${avatar}</div><div class="bubble">${escapeHtml(text)}</div>`;
+  chatArea.appendChild(div);
+  scrollDown();
+}
+
+function addReport(markdown, timestamp) {
+  const div = document.createElement('div');
+  div.className = 'message agent';
+  const html = marked.parse(markdown);
+  div.innerHTML = `
+    <div class="avatar">⛏️</div>
+    <div class="bubble">
+      ${html}
+      <div class="actions">
+        <button class="action-btn" onclick="downloadMd(this)" data-md="${escapeAttr(markdown)}">
+          <span>📥</span> Download .md
+        </button>
+        <button class="action-btn" onclick="copyReport(this)" data-md="${escapeAttr(markdown)}">
+          <span>📋</span> Copy
+        </button>
+        <span style="margin-left:auto;font-size:11px;color:var(--text2)">${timestamp ? new Date(timestamp).toLocaleString() : ''}</span>
+      </div>
+    </div>`;
+  chatArea.appendChild(div);
+  scrollDown();
+  conversation.push({ markdown, timestamp });
+}
+
+function showLoading() {
+  const div = document.createElement('div');
+  div.className = 'message agent';
+  div.id = 'loading-msg';
+  div.innerHTML = `
+    <div class="avatar">⛏️</div>
+    <div class="bubble">
+      <div class="loading"><span></span><span></span><span></span></div>
+      <div style="color:var(--text2);font-size:13px">Generating briefing...</div>
+    </div>`;
+  chatArea.appendChild(div);
+  scrollDown();
+  return div;
+}
+
+function removeLoading(el) {
+  if (el && el.parentNode) el.remove();
+}
+
+// ── Actions ────────────────────────────────
+function downloadMd(btn) {
+  const md = btn.getAttribute('data-md');
+  const blob = new Blob([md], { type: 'text/markdown' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const ts = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `mining-daily-${ts}.md`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Downloaded!');
+}
+
+function copyReport(btn) {
+  const md = btn.getAttribute('data-md');
+  navigator.clipboard.writeText(md).then(() => toast('Copied!'));
+}
+
+function downloadLast() {
+  if (!conversation.length) return;
+  const last = conversation[conversation.length - 1];
+  const blob = new Blob([last.markdown], { type: 'text/markdown' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `mining-daily-${new Date().toISOString().slice(0,10)}.md`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── Helpers ────────────────────────────────
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+function escapeAttr(s) {
+  return s.replace(/"/g, '&quot;').replace(/\n/g, '\\n');
+}
+function scrollDown() {
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+function toast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2100);
+}
+</script>
+</body>
+</html>
