@@ -3,7 +3,7 @@
 ## 1. 环境准备
 
 - Python 3.11+
-- (可选) Anthropic API Key — 不用也能跑，内置了 mock 数据
+- (可选) API Key — 不用也能跑，内置了 mock 数据
 
 ## 2. 安装
 
@@ -27,24 +27,38 @@ python -m agent.main --standalone
 
 ---
 
-**有 API Key** 可以启用 LLM 润色，报告质量更高。支持 6 种大模型，任选一个配置即可：
+**有 API Key** 启用 LLM 润色。创建 `.env` 文件放入项目根目录即可，**不用区分 Windows/Mac/Linux**：
 
 ```bash
-# Anthropic Claude (默认)
-export ANTHROPIC_API_KEY=sk-ant-xxxxx
+# .env — 项目根目录下新建这个文件，填入你要用的 API Key (一个就够了)
+ANTHROPIC_API_KEY=sk-ant-xxxxx
+```
 
-# 或者用国产大模型 — 兼容 OpenAI API，价格更实惠
-# export DEEPSEEK_API_KEY=sk-xxxxx         # DeepSeek
-# export QWEN_API_KEY=sk-xxxxx             # 通义千问
-# export ZHIPU_API_KEY=xxxxx.xxxxx         # 智谱 GLM
-# export MOONSHOT_API_KEY=sk-xxxxx         # Moonshot Kimi
-# export OPENAI_API_KEY=sk-xxxxx           # OpenAI GPT
+国产大模型也支持：
 
-# 切换 Provider (不设则自动检测)
-export MODEL_PROVIDER=deepseek
+```bash
+# 用 DeepSeek
+DEEPSEEK_API_KEY=sk-xxxxx
+MODEL_PROVIDER=deepseek
 
+# 用通义千问
+QWEN_API_KEY=sk-xxxxx
+MODEL_PROVIDER=qwen
+
+# 用智谱 GLM
+ZHIPU_API_KEY=xxxxx.xxxxxxxxxxxxxx
+MODEL_PROVIDER=zhipu
+```
+
+然后运行：
+
+```bash
 python -m agent.main
 ```
+
+Agent 会自动读取 `.env` 文件，不用手动 `export` / `set`。
+
+> 可用 `python -m agent.main --list-models` 查看支持的模型列表。
 
 ---
 

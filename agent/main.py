@@ -21,10 +21,21 @@ import os
 import asyncio
 import argparse
 from datetime import datetime
+from pathlib import Path
 from typing import Optional
 
 # Ensure project root is on path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(_PROJECT_ROOT))
+
+# Auto-load .env file from project root (platform-agnostic, no shell export needed)
+try:
+    from dotenv import load_dotenv
+    _env_file = _PROJECT_ROOT / ".env"
+    if _env_file.exists():
+        load_dotenv(_env_file)
+except ImportError:
+    pass
 
 from langchain_core.messages import HumanMessage
 from loguru import logger
