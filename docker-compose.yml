@@ -73,12 +73,16 @@ services:
     environment:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
+      - QWEN_API_KEY=${QWEN_API_KEY:-}
+      - ZHIPU_API_KEY=${ZHIPU_API_KEY:-}
+      - MOONSHOT_API_KEY=${MOONSHOT_API_KEY:-}
       - MCP_CLIENT_TRANSPORT=sse
       - MCP_NEWS_URL=http://mining-news-mcp:8000/sse
       - MCP_PDF_URL=http://mineral-pdf-mcp:8000/sse
       - MCP_LME_URL=http://lme-price-mcp:8000/sse
-      - MODEL_PROVIDER=${MODEL_PROVIDER:-anthropic}
-      - MODEL_NAME=${MODEL_NAME:-claude-sonnet-4-20250514}
+      - MODEL_PROVIDER=${MODEL_PROVIDER:-}
+      - MODEL_NAME=${MODEL_NAME:-}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
     stdin_open: true
     tty: true

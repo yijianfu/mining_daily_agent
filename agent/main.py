@@ -205,9 +205,9 @@ async def run_standalone(query: str) -> str:
 
     # Step 5: Synthesize with LLM
     try:
-        from agent.nodes import _get_model
+        from agent.llm import get_model
 
-        model = _get_model()
+        model = get_model()
         prompt = SYNTHESIS_PROMPT.format(
             user_query=query,
             topic=topic,
@@ -277,17 +277,17 @@ Examples:
         help="Run without MCP server subprocesses (use internal mock data)",
     )
     parser.add_argument(
-        "--mcp-transport",
-        choices=["stdio", "sse"],
-        default=None,
-        help="MCP transport mode (default: from MCP_CLIENT_TRANSPORT env var or stdio)",
+        "--list-models",
+        action="store_true",
+        help="List supported LLM providers and exit",
     )
 
     args = parser.parse_args()
 
-    # Override config if specified
-    if args.mcp_transport:
-        os.environ["MCP_CLIENT_TRANSPORT"] = args.mcp_transport
+    if args.list_models:
+        from agent.llm import list_providers
+        print(list_providers())
+        return
 
     async def _run():
         if args.standalone:

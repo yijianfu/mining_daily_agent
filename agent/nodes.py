@@ -397,42 +397,13 @@ async def synthesize_node(
 
 
 def _get_model(config: Optional[RunnableConfig] = None):
-    """Get the LLM model instance based on configuration.
+    """Get the LLM model instance from unified provider factory.
 
-    Tries Anthropic first, falls back to OpenAI.
+    Reads MODEL_PROVIDER from env. Auto-detects if not set.
+    Supports: Anthropic, OpenAI, DeepSeek, Qwen, Zhipu GLM, Moonshot.
     """
-    from agent.config import agent_config
-
-    provider = agent_config.model_provider
-    model_name = agent_config.model_name
-
-    if provider == "anthropic":
-        try:
-            from langchain_anthropic import ChatAnthropic
-            logger.info(f"Using Anthropic model: {model_name}")
-            return ChatAnthropic(
-                model=model_name,
-                temperature=0.3,
-                max_tokens=4096,
-                timeout=120,
-            )
-        except Exception as e:
-            logger.warning(f"Anthropic init failed ({e}), trying OpenAI")
-
-    try:
-        from langchain_openai import ChatOpenAI
-        logger.info(f"Using OpenAI model: {model_name}")
-        return ChatOpenAI(
-            model=model_name or "gpt-4o",
-            temperature=0.3,
-            max_tokens=4096,
-            timeout=120,
-        )
-    except Exception as e:
-        raise RuntimeError(
-            f"Failed to initialize any LLM model: {e}. "
-            f"Set ANTHROPIC_API_KEY or OPENAI_API_KEY."
-        )
+    from agent.llm import get_model
+    return get_model()
 
 
 def _find_tool(tools: list, name_contains: str) -> Optional[Any]:

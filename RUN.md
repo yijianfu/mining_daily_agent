@@ -27,15 +27,22 @@ python -m agent.main --standalone
 
 ---
 
-**有 API Key** 可以启用 LLM 润色，报告质量更高：
+**有 API Key** 可以启用 LLM 润色，报告质量更高。支持 6 种大模型，任选一个配置即可：
 
 ```bash
-# macOS / Linux
+# Anthropic Claude (默认)
 export ANTHROPIC_API_KEY=sk-ant-xxxxx
-python -m agent.main
 
-# Windows
-set ANTHROPIC_API_KEY=sk-ant-xxxxx
+# 或者用国产大模型 — 兼容 OpenAI API，价格更实惠
+# export DEEPSEEK_API_KEY=sk-xxxxx         # DeepSeek
+# export QWEN_API_KEY=sk-xxxxx             # 通义千问
+# export ZHIPU_API_KEY=xxxxx.xxxxx         # 智谱 GLM
+# export MOONSHOT_API_KEY=sk-xxxxx         # Moonshot Kimi
+# export OPENAI_API_KEY=sk-xxxxx           # OpenAI GPT
+
+# 切换 Provider (不设则自动检测)
+export MODEL_PROVIDER=deepseek
+
 python -m agent.main
 ```
 

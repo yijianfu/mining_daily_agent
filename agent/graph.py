@@ -77,8 +77,5 @@ def build_graph(
     memory = MemorySaver()
     graph = builder.compile(checkpointer=memory)
 
-    logger.info(
-        f"Graph compiled: {len(graph.nodes)} nodes, "
-        f"{len(graph.edges)} edges"
-    )
+    logger.info(f"Graph compiled: {len(graph.nodes)} nodes")
     return graph
