@@ -12,6 +12,15 @@ from pathlib import Path
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_PROJECT_ROOT))
 
+# Auto-load .env
+try:
+    from dotenv import load_dotenv
+    _env_file = _PROJECT_ROOT / ".env"
+    if _env_file.exists():
+        load_dotenv(_env_file)
+except ImportError:
+    pass
+
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, StreamingResponse
@@ -49,9 +58,21 @@ class ChatResponse(BaseModel):
 # ── Agent Runner ─────────────────────────────────────────────────────────────
 
 async def _run_agent(query: str) -> str:
-    """Run the agent in standalone mode (no MCP subprocess overhead)."""
-    from agent.main import run_standalone
-    return await run_standalone(query)
+    """Run the agent, auto-detecting standalone vs MCP mode.
+
+    In Docker (MCP_CLIENT_TRANSPORT=sse): connects to MCP servers via SSE.
+    Locally (default): uses standalone mode with built-in mock data.
+    """
+    from agent.main import run_standalone, run_agent
+    import os
+
+    transport = os.getenv("MCP_CLIENT_TRANSPORT", "")
+    if transport == "sse":
+        # Docker mode — connect to MCP servers via SSE
+        return await run_agent(query=query)
+    else:
+        # Local dev mode — standalone
+        return await run_standalone(query)
 
 
 # ── API Routes ───────────────────────────────────────────────────────────────

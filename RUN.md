@@ -15,15 +15,15 @@ pip install -r servers/mineral_pdf_mcp/requirements.txt
 pip install -r agent/requirements.txt
 
 # 4. 运行 (三选一)
+#    Web 界面 (推荐)
+python -m agent.web_server
+#    打开 http://127.0.0.1:8080
+
 #    CLI 对话模式
 python -m agent.main
 
 #    CLI 单次模式
 python -m agent.main "给我生成一份关于 Pilbara 锂矿的今日简报"
-
-#    Web 界面 (推荐)
-python -m agent.web_server
-#    打开 http://127.0.0.1:8080
 
 # 5. 得到完整的 Markdown 日报
 #    新闻摘要 + 储量数据 + 价格走势 + 风险提示 + 引用来源
