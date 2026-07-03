@@ -30,4 +30,5 @@ python -m agent.main "给我生成一份关于 Pilbara 锂矿的今日简报"
 
 # Docker
 docker compose up --build
+#    打开 http://localhost:8080
 ```
