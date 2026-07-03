@@ -27,10 +27,7 @@ from servers.mineral_pdf_mcp.tools import extract_resources
 
 setup_logging("mineral-pdf-mcp", use_stderr=True)
 
-mcp = FastMCP(
-    name="mineral-pdf-mcp",
-    description="NI 43-101 mineral resource PDF extraction",
-)
+mcp = FastMCP(name="mineral-pdf-mcp")
 
 server = BaseMCPServer(
     mcp=mcp,

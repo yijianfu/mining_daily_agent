@@ -28,10 +28,7 @@ from servers.lme_price_mcp.tools import get_price, get_trend
 
 setup_logging("lme-price-mcp", use_stderr=True)
 
-mcp = FastMCP(
-    name="lme-price-mcp",
-    description="LME and commodity metal price data — current prices and trends",
-)
+mcp = FastMCP(name="lme-price-mcp")
 
 server = BaseMCPServer(
     mcp=mcp,

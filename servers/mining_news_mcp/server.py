@@ -27,10 +27,7 @@ from servers.mining_news_mcp.tools import search_mining_news, fetch_article
 
 setup_logging("mining-news-mcp", use_stderr=True)
 
-mcp = FastMCP(
-    name="mining-news-mcp",
-    description="Mining industry news search and article fetching",
-)
+mcp = FastMCP(name="mining-news-mcp")
 
 server = BaseMCPServer(
     mcp=mcp,
